@@ -49,7 +49,7 @@ SNS で共有されたときの画像（OGP）は `docs/ogp.png`。もとは `to
 
 ## 使っているもの
 
-- 本文：[青空文庫](https://www.aozora.gr.jp/)（底本と入力・校正の方は、写経の画面に載せている）
+- 本文：[青空文庫](https://www.aozora.gr.jp/)。三作とも、日本でも米国でも著作権の保護期間が終わっている作品（芥川龍之介 1927 年没、宮沢賢治 1933 年没、新美南吉 1943 年没。GitHub Pages は米国のサービスなので、作者が 1945 年以前に亡くなっているか 1930 年以前に発表された作品にしている）。青空文庫の「[収録ファイルの取り扱い規準](https://www.aozora.gr.jp/guide/kijyunn.html)」に沿い、書誌（底本・入力・校正・公開日・「青空文庫作成ファイル：」以下の注）はすべて写経の画面に載せ、本文の字句は変えずに使う。青空写経は青空文庫の公式のサービスではない
 - 読み：青空文庫のルビと、macOS の日本語の解析（CFStringTokenizer）
 - 書体：Google Fonts（Shippori Mincho / Zen Kaku Gothic New / Yuji Syuku）
 - 打鍵音：unicaegames「[Keyboard Soundpack #1](https://opengameart.org/content/keyboard-soundpack-1-typing-and-single-keystrokes)」（CC0）。shakyo から

@@ -27,6 +27,8 @@ import { buildStream, feed, hira, nextKey } from './yomi.js';
 // 書いている枚だけを見せるが、次の枚があれば、その頭の数行を左にうっすら続きとして見せる。
 // 語や変換中の字が枚をまたいでも、先を読みながら書ける。
 //
+// 外字（日本語入力では出しにくい字。texts.js の auto）は、カーソルが来たら打たずに升目へ入れて先へ進む。
+//
 // 段落の頭の字下げ・改行・ぶら下げは自動。書けるのは先頭から順にだけで、
 // 直すときは BackSpace で戻る。Enter は変換の確定にだけ使う。
 //
@@ -77,12 +79,13 @@ export function layout(paras) {
     starts.add(chars.length);
     let row = p.align === 'end' ? Math.max(0, ROWS - p.text.length) : p.indent;
     const start = chars.length;
-    for (const ch of p.text) {
+    const auto = new Set(p.auto ?? []);
+    for (const [i, ch] of [...p.text].entries()) {
       if (row >= ROWS && !(row === ROWS && HANG.has(ch))) {
         col++;
         row = 0;
       }
-      chars.push({ ch, col, row });
+      chars.push(auto.has(i) ? { ch, col, row, auto: true } : { ch, col, row });
       row++;
     }
     for (const [s, e, text] of p.ruby ?? []) marks.push({ kind: 'ruby', from: start + s, to: start + e, text });
@@ -128,6 +131,7 @@ export function createGenko(opts) {
 
   let typed = '';
   for (const ch of opts.value ?? '') if (typed.length < total) typed += ch;
+  autoFill();
   let misses = opts.misses ?? 0;
   let context = ''; // 筆先に残している左の文脈
   let kana = { pos: 0, pending: '' }; // 読みで打つ：読みのどこまで打ったか、まだ字にならないローマ字
@@ -492,15 +496,35 @@ export function createGenko(opts) {
     kana = { pos: typed.length < total ? stream.starts[typed.length] : stream.stream.length, pending: '' };
   }
 
-  // 読みで打つ：読みを打ち終えた語の字を、手本のとおりに升目へ入れる
+  // カーソルが外字に来たら、打たずに升目へ入れる。入れたら true
+  function autoFill() {
+    const from = typed.length;
+    while (typed.length < total && chars[typed.length].auto) typed += chars[typed.length].ch;
+    return typed.length > from;
+  }
+
+  // BackSpace：自動で入れた字は飛ばして、その前の字を一つ消す。消した字数を返す
+  function backOne() {
+    const before = typed.length;
+    while (typed.length && chars[typed.length - 1].auto) typed = typed.slice(0, -1);
+    if (typed.length) typed = typed.slice(0, -1);
+    return before - typed.length;
+  }
+
+  // 読みで打つ：読みを打ち終えた語の字を、手本のとおりに升目へ入れる（続く外字も入れて、読みの位置をその先へ）
   function fillByKana() {
     const from = typed.length;
     while (typed.length < total && stream.ends[typed.length] <= kana.pos) typed += chars[typed.length].ch;
+    if (autoFill()) syncKana();
     if (typed.length > from) fresh = { from, to: typed.length };
     return typed.length > from;
   }
 
   function typeKana(e) {
+    if (autoFill()) {
+      syncKana();
+      setContext();
+    }
     const at = typed.length;
     const ok = feed(stream.stream, kana, e.key);
     record('key', { key: e.key, ok, at });
@@ -552,6 +576,7 @@ export function createGenko(opts) {
 
     for (const ch of added) {
       if (ch === '\n' || ch === '\r' || ch === '\t') continue;
+      autoFill();
       if (typed.length >= total) break;
       const expected = chars[typed.length].ch;
       // 段落の頭の字下げなどで空白を打っても、手本が空白でなければ数えない
@@ -559,6 +584,7 @@ export function createGenko(opts) {
       if (!same(ch, expected)) misses++;
       typed += ch;
     }
+    autoFill();
     fresh = typed.length > from ? { from, to: typed.length } : null;
     if (added) {
       const ok = [...typed.slice(from)].every((ch, i) => same(ch, chars[from + i].ch));
@@ -587,8 +613,9 @@ export function createGenko(opts) {
       if (kana.pending) kana.pending = kana.pending.slice(0, -1);
       else if (typed.length < total && kana.pos > stream.starts[typed.length]) kana.pos--;
       else if (typed.length) {
-        const end = stream.ends[typed.length - 1];
         const before = typed.length;
+        while (typed.length && chars[typed.length - 1].auto) typed = typed.slice(0, -1);
+        const end = stream.ends[typed.length - 1];
         while (typed.length && stream.ends[typed.length - 1] === end) typed = typed.slice(0, -1);
         record('delete', { n: before - typed.length, at: typed.length });
         setContext();
@@ -601,8 +628,7 @@ export function createGenko(opts) {
       // 一字戻る。段落の頭では、前の段落の最後の字を消す
       e.preventDefault();
       if (typed.length) {
-        typed = typed.slice(0, -1);
-        record('delete', { n: 1, at: typed.length });
+        record('delete', { n: backOne(), at: typed.length });
         fresh = null;
         peek = null;
         setContext();
@@ -693,6 +719,7 @@ export function createGenko(opts) {
     },
     reset() {
       typed = '';
+      autoFill();
       misses = 0;
       fresh = null;
       setContext();

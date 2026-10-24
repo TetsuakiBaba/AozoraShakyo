@@ -168,15 +168,15 @@
     </svg>
 
     <script>
-      // 『走れメロス』の書き出しを、右の行から上下に詰める。はじめの字は墨で、
-      // 「邪智暴虐」は読みを打っている途中（藍の帯）、そのあとは薄墨の手本
-      const text = '　メロスは激怒した。必ず、かの邪智暴虐の王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。';
+      // 『羅生門』の書き出しを、右の行から上下に詰める。はじめの字は墨で、
+      // 「下人」は読みを打っている途中（藍の帯）、そのあとは薄墨の手本
+      const text = '　ある日の暮方の事である。一人の下人が、羅生門の下で雨やみを待っていた。広い門の下には、この男のほかに誰もいない。ただ、所々丹塗の剥げた、大きな円柱に、蟋蟀が一匹とまっている。羅生門が、朱雀大路にある以上は、この男のほかにも、雨やみをする市女笠や揉烏帽子が、もう二三人はありそうなものである。'
       const rows = 12;
       const cols = 8;
       const c = 40;
       const gap = 16;
-      const inked = 15; // 「かの」まで
-      const aim = [15, 19]; // 邪智暴虐
+      const inked = 16; // 「一人の」まで
+      const aim = [16, 18]; // 下人
       const sheet = document.getElementById('sheet');
       const right = 486 - 36;
       const y0 = 25;
@@ -198,7 +198,7 @@
         if (i === aim[0]) {
           const ruby = document.createElement('span');
           ruby.className = 'ruby';
-          ruby.innerHTML = '<b>じゃち</b>ぼうぎゃく';
+          ruby.innerHTML = '<b>げ</b>にん';
           ruby.style.left = `${right - col * (c + gap)}px`;
           ruby.style.top = `${y0 + row * c}px`;
           ruby.style.height = `${(aim[1] - aim[0]) * c}px`;

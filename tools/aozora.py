@@ -11,6 +11,7 @@ Python 3 の標準機能と、macOS に入っている日本語の解析（tools
   ruby   text の [start, end) に添える読み（青空文庫のルビ）
   yomi   漢字を含む語の読み（ひらがな）。「読みで打つ」で使う。送りがなは分け、ルビのある語はルビの読みにする
   dots   傍点をつける範囲
+  auto   自動で升目に入れる字の位置（外字。日本語入力では出しにくいので、打たずに進める）
   align  'end' なら地付き（行の下に寄せる）
 空行は text が空の段落。見出しが来たら、そこから新しい章にする。
 """
@@ -26,11 +27,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs" / "src" / "texts.js"
 
+# 取り込む本。日本でも米国でも著作権の保護期間が終わっている作品にする
+# （GitHub Pages は米国のサービス。作者が 1945 年以前に亡くなっているか、1930 年以前に発表された作品）
 BOOKS = [
     {
-        "id": "melos",
-        "url": "https://www.aozora.gr.jp/cards/000035/files/1567_14913.html",
-        "card": "https://www.aozora.gr.jp/cards/000035/card1567.html",
+        "id": "rashomon",
+        "url": "https://www.aozora.gr.jp/cards/000879/files/127_15260.html",
+        "card": "https://www.aozora.gr.jp/cards/000879/card127.html",
     },
     {
         "id": "chumon",
@@ -47,17 +50,47 @@ BOOKS = [
 # 読みの直し。macOS の解析が読み違えた語を、前後の字ごと指定して直す（本の id → [(前後の字, 直す語, 読み), ...]）
 # 前後の字で場所を絞るのは、同じ字でも語によって読みが変わるため（「用心深かった」なら「ぶか」が正しい）
 YOMI_FIXES = {
-    "melos": [
-        ("間近か", "間近", "まぢ"),  # 送りがなの「か」を書いた表記。解析は「まぢか」と読み、か が二重になる
-        ("身近か", "身近", "みぢ"),  # 同上
-        ("ように深かった", "深", "ふか"),  # 解析は「ぶかかっ」と読む
-        ("情無い", "情", "なさけ"),  # 解析は「じょう」と読む
+    "rashomon": [
+        ("扭じ倒", "扭", "ねじ"),  # 外字（てへん＋丑）
+        ("眶の外", "眶", "まぶた"),  # 外字（目＋匡）
+        # 解析が文脈を取り違えたもの
+        ("の下で", "下", "した"),  # 「もと」と読む
+        ("築土の下か", "下", "した"),
+        ("つづいて起った", "起", "おこ"),  # 「た（つ）」と読む
+        ("少からず", "少", "すくな"),
+        ("斜につき", "斜", "はす"),
+        ("数は幾つ", "数", "かず"),
+        ("門の上の空", "上", "うえ"),  # 「上の空（うわのそら）」と取り違える
+        # 数と助数詞（解析は一字ずつ読み、音のつながりが変わらない）
+        ("一匹", "一匹", "いっぴき"),
+        ("一晩", "一晩", "ひとばん"),
+        ("一本", "一本", "いっぽん"),
+        ("一分毎", "一分", "いっぷん"),
+        ("何分か", "何分", "なんぷん"),
+        ("四五日", "四五日", "しごにち"),
+        ("六分の", "六分", "ろくぶ"),
+        ("四分の", "四分", "しぶ"),
+        # ルビのない二度目からを、ルビと同じ読みにする
+        ("唖のように執拗", "唖", "おし"),
+        ("頬に膿を", "膿", "うみ"),
+        ("を己に話", "己", "おれ"),
+        ("己もそう", "己", "おれ"),
+        ("老婆の答", "答", "こたえ"),  # 解析が旧仮名で「こたへ」と読む
     ],
+}
+
+# 外字（青空文庫が画像で表している字）を、Unicode の字に置き換える（JIS X 0213 の面区点 → 字）。
+# 表にない外字は「〓」にする。どちらも自動で升目に入れる（auto）
+GAIJI_CHARS = {
+    "2-12-93": "扭",  # てへん＋丑
+    "1-88-81": "眶",  # 目＋匡
 }
 
 RUBY = re.compile(r"<ruby><rb>(.*?)</rb><rp>.*?</rp><rt>(.*?)</rt><rp>.*?</rp></ruby>", re.S)
 DOTS = re.compile(r'<em class="sesame_dot">(.*?)</em>', re.S)
 GAIJI = re.compile(r'<img [^>]*class="gaiji"[^>]*/>')
+GAIJI_CODE = re.compile(r"第\d水準(\d-\d+-\d+)")
+AUTO_CHARS = set(GAIJI_CHARS.values()) | {"〓"}
 HEADING = re.compile(r"<h[3-5][^>]*>(.*?)</h[3-5]>", re.S)
 TAG = re.compile(r"<[^>]+>")
 KANJI = "\u3400-\u9fff\uf900-\ufaff々〆ヶ〇"
@@ -73,29 +106,35 @@ def plain(fragment):
     return html.unescape(TAG.sub("", fragment))
 
 
+def gaiji_char(m):
+    code = GAIJI_CODE.search(m.group(0))
+    char = GAIJI_CHARS.get(code.group(1)) if code else None
+    if not char:
+        print(f"表にない外字：{m.group(0)}", file=sys.stderr)
+    return char or "〓"
+
+
 def parse_line(line):
     """一行（段落）の XHTML を、打つ字とルビ・傍点の範囲に分ける"""
     line = line.replace("\r", "").replace("\n", "")
+    line = GAIJI.sub(gaiji_char, line)
     align = "end" if "chitsuki" in line else None
     text = ""
     ruby = []
     dots = []
     pos = 0
     # ルビと傍点を先に見つけ、そのほかのタグは捨てる
-    pattern = re.compile(f"{RUBY.pattern}|{DOTS.pattern}|{GAIJI.pattern}", re.S)
+    pattern = re.compile(f"{RUBY.pattern}|{DOTS.pattern}", re.S)
     for m in pattern.finditer(line):
         text += plain(line[pos : m.start()])
         if m.group(1) is not None:
             base = plain(m.group(1))
             ruby.append([len(text), len(text) + len(base), plain(m.group(2))])
             text += base
-        elif m.group(3) is not None:
+        else:
             inner = plain(m.group(3))
             dots.append([len(text), len(text) + len(inner)])
             text += inner
-        else:
-            # 外字は今回の本にはない。来たら目印の字にして、あとで扱いを決める
-            text += "〓"
         pos = m.end()
     text += plain(line[pos:])
 
@@ -109,6 +148,9 @@ def parse_line(line):
         para["ruby"] = ruby
     if dots:
         para["dots"] = dots
+    auto = [i for i, c in enumerate(text) if c in AUTO_CHARS]
+    if auto:
+        para["auto"] = auto
     if align:
         para["align"] = align
     return para
@@ -139,16 +181,9 @@ def parse(source, book):
             paras.pop()
     sections = [s for s in sections if s["paras"]]
 
-    # 書誌は「底本」から「校正」まで（公開日などは除く）
-    credit = []
-    for line in re.split(r"<br />", biblio):
-        line = plain(line).strip()
-        if not line or line.startswith("青空文庫作成ファイル"):
-            if credit:
-                break
-            continue
-        credit.append(line)
-    credit = [c for c in credit if not re.match(r"\d{4}年\d+月\d+日(公開|修正|作成)", c)]
+    # 書誌（底本・入力・校正・公開日と、「青空文庫作成ファイル：」以下の由来の注）は、すべて残す。
+    # 青空文庫の「収録ファイルの取り扱い規準」は、これらが削除されないことを希望している
+    credit = [line for line in (plain(l).strip() for l in re.split(r"<br />", biblio)) if line]
 
     return {
         "id": book["id"],

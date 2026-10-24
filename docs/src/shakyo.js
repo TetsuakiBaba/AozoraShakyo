@@ -59,9 +59,11 @@ function setupHead() {
   $('book-title').textContent = book.title;
   $('book-section').textContent = many ? `${sectionName(book, index)}（${index + 1} / ${book.sections.length}章）` : '';
   document.title = `${book.title}${many ? ` ${section.title}` : ''} ｜ 青空写経`;
+  // 青空文庫の書誌はすべて載せ、どのファイルにどんな手を加えたかを書き添える（収録ファイルの取り扱い規準が希望していること）
   $('credit').innerHTML =
     `${book.credit.map(escapeHtml).join('<br />')}<br />` +
-    `<a href="${book.card}" target="_blank" rel="noopener">青空文庫の図書カード</a>`;
+    `<a href="${book.card}" target="_blank" rel="noopener">青空文庫の図書カード</a><br /><br />` +
+    '青空写経では、このファイル（XHTML）から本文を取り込み、字句は変えずに縦書きの原稿用紙に組んでいます。漢字には読みを添えています（青空文庫のルビと、macOS の日本語の解析による）。';
   renderChapters();
 }
 
