@@ -1,0 +1,211 @@
+<!doctype html>
+<!-- OGP の画像（docs/ogp.png）のもと。Chrome で 1200×630 の大きさに開いて撮る -->
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>青空写経 OGP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap"
+    />
+    <style>
+      :root {
+        --paper: #f1ece1;
+        --sheet: #f8f5ed;
+        --ink: #1d1b18;
+        --ink-soft: #57524a;
+        --ink-faint: #8d8679;
+        --usuzumi: #c6beae;
+        --shu: #c23b22;
+        --ai: #2f4a6d;
+        --line: rgba(194, 59, 34, 0.28);
+        --c: 40px;
+        --gap: 16px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: 'Zen Kaku Gothic New', sans-serif;
+        position: relative;
+      }
+      /* 紙の繊維のような、ごく薄いざらつき */
+      body::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.35;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+      .text {
+        position: absolute;
+        left: 84px;
+        top: 150px;
+      }
+      .eyebrow {
+        margin: 0;
+        font-family: 'Shippori Mincho', serif;
+        font-size: 24px;
+        letter-spacing: 0.3em;
+        color: var(--ink-soft);
+      }
+      h1 {
+        margin: 18px 0 0;
+        font-family: 'Yuji Syuku', serif;
+        font-weight: 400;
+        font-size: 124px;
+        line-height: 1.15;
+        letter-spacing: 0.08em;
+      }
+      .lead {
+        margin: 26px 0 0;
+        font-family: 'Shippori Mincho', serif;
+        font-size: 25px;
+        line-height: 1.8;
+        letter-spacing: 0.12em;
+        color: var(--ink-soft);
+      }
+      .en {
+        margin: 34px 0 0;
+        font-size: 15px;
+        letter-spacing: 0.5em;
+        color: var(--ink-faint);
+      }
+      /* 原稿用紙のかけら */
+      .sheet {
+        position: absolute;
+        right: 64px;
+        top: 50px;
+        width: 486px;
+        height: 530px;
+        background: var(--sheet);
+        border: 1px solid rgba(29, 27, 24, 0.14);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 22px 44px -28px rgba(60, 45, 20, 0.45);
+      }
+      .cell {
+        position: absolute;
+        width: var(--c);
+        height: var(--c);
+        writing-mode: vertical-rl;
+        text-align: center;
+        line-height: var(--c);
+        font-family: 'Shippori Mincho', serif;
+        font-size: 30px;
+        color: var(--usuzumi);
+        border: 1px solid var(--line);
+        margin: -0.5px;
+      }
+      .cell.ink {
+        color: var(--ink);
+      }
+      .cell.hang {
+        border-color: transparent;
+      }
+      .cell.aim {
+        background: rgba(47, 74, 109, 0.09);
+      }
+      .ruby {
+        position: absolute;
+        writing-mode: vertical-rl;
+        text-align: center;
+        font-family: 'Shippori Mincho', serif;
+        font-size: 12px;
+        line-height: var(--gap);
+        width: var(--gap);
+        color: var(--ink);
+        background: rgba(47, 74, 109, 0.09);
+      }
+      .ruby b {
+        color: var(--ai);
+      }
+      .seal {
+        position: absolute;
+        right: 418px;
+        bottom: 42px;
+        width: 128px;
+        height: 128px;
+        mix-blend-mode: multiply;
+        transform: rotate(-6deg);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="text">
+      <p class="eyebrow">青空文庫を、写す</p>
+      <h1>青空写経</h1>
+      <p class="lead">名作を、縦書きの原稿用紙に<br />一字ずつなぞって書き写す。</p>
+      <p class="en">AOZORA SHAKYO</p>
+    </div>
+
+    <div id="sheet" class="sheet"></div>
+
+    <svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <filter id="rough" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="7" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.2" />
+        </filter>
+      </defs>
+      <g filter="url(#rough)">
+        <rect x="6" y="6" width="108" height="108" rx="6" fill="#c23b22" />
+        <rect x="13" y="13" width="94" height="94" rx="3" fill="none" stroke="#f8f5ed" stroke-width="2.4" />
+        <g fill="#f8f5ed" font-family="'Shippori Mincho', serif" font-weight="700" font-size="38" text-anchor="middle">
+          <text x="83" y="55">写</text>
+          <text x="83" y="98">経</text>
+          <text x="37" y="55">之</text>
+          <text x="37" y="98">印</text>
+        </g>
+      </g>
+    </svg>
+
+    <script>
+      // 『走れメロス』の書き出しを、右の行から上下に詰める。はじめの字は墨で、
+      // 「邪智暴虐」は読みを打っている途中（藍の帯）、そのあとは薄墨の手本
+      const text = '　メロスは激怒した。必ず、かの邪智暴虐の王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。';
+      const rows = 12;
+      const cols = 8;
+      const c = 40;
+      const gap = 16;
+      const inked = 15; // 「かの」まで
+      const aim = [15, 19]; // 邪智暴虐
+      const sheet = document.getElementById('sheet');
+      const right = 486 - 36;
+      const y0 = 25;
+      // 句読点が行の頭に来たら、前の行の下へぶら下げる（写経の画面と同じ）
+      let col = 0;
+      let row = 0;
+      [...text].forEach((ch, i) => {
+        if (row >= rows && !(row === rows && '、。'.includes(ch))) {
+          col++;
+          row = 0;
+        }
+        if (col >= cols) return;
+        const cell = document.createElement('span');
+        cell.className = 'cell' + (i < inked ? ' ink' : '') + (i >= aim[0] && i < aim[1] ? ' aim' : '') + (row === rows ? ' hang' : '');
+        cell.textContent = ch === '　' ? '' : ch;
+        cell.style.left = `${right - (col + 1) * c - col * gap}px`;
+        cell.style.top = `${y0 + row * c}px`;
+        sheet.append(cell);
+        if (i === aim[0]) {
+          const ruby = document.createElement('span');
+          ruby.className = 'ruby';
+          ruby.innerHTML = '<b>じゃち</b>ぼうぎゃく';
+          ruby.style.left = `${right - col * (c + gap)}px`;
+          ruby.style.top = `${y0 + row * c}px`;
+          ruby.style.height = `${(aim[1] - aim[0]) * c}px`;
+          sheet.append(ruby);
+        }
+        row++;
+      });
+    </script>
+  </body>
+</html>

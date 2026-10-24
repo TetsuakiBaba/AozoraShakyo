@@ -45,6 +45,8 @@ python3 tools/aozora.py   # → docs/src/texts.js
 
 GitHub Pages で、main ブランチの `docs/` をそのまま配っています。main に push すると、しばらくして公開し直されます。ビルドの手順はありません（`docs/.nojekyll` で Jekyll の処理を止めています）。
 
+SNS で共有されたときの画像（OGP）は `docs/ogp.png`。もとは `tools/ogp.html` で、Chrome で 1200×630 の大きさに開いて撮り直します。
+
 ## 使っているもの
 
 - 本文：[青空文庫](https://www.aozora.gr.jp/)（底本と入力・校正の方は、写経の画面に載せている）
