@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ja" data-theme="washi" data-font="mincho">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>青空写経</title>
+    <meta name="description" content="青空文庫の名作を、薄墨で刷られた縦書きの原稿用紙に一字ずつなぞって書き写す。読むだけでは素通りしてしまう言葉を、手を通してもう一度読む。" />
+    <meta name="theme-color" content="#f1ece1" />
+    <script>
+      try {
+        const s = JSON.parse(localStorage.getItem('aozora:settings') || '{}');
+        if (s.theme) document.documentElement.dataset.theme = s.theme;
+        if (s.font) document.documentElement.dataset.font = s.font;
+      } catch (e) {}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+    />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="./">
+        <span class="brand-ja">青空写経</span>
+        <span class="brand-en">AOZORA SHAKYO</span>
+      </a>
+      <span></span>
+      <div class="top-actions">
+        <button id="guide-btn" class="text-btn" type="button">はじめに</button>
+        <button id="settings-btn" class="text-btn" type="button">設定</button>
+      </div>
+    </header>
+
+    <main class="intro-layout">
+      <section class="hero">
+        <div>
+          <p class="eyebrow"><span>青空文庫を、写す</span><span class="eyebrow-en">AOZORA SHAKYO</span></p>
+          <h1>青空写経</h1>
+          <p class="lead">
+            薄墨で刷られた名作の原稿用紙を、一字ずつなぞって書き写します。<br />
+            読むだけでは素通りしてしまう言葉を、手を通してもう一度読む。<br />
+            一冊を書き上げたら、書いた記録を手元に納めます。
+          </p>
+          <div class="hero-actions">
+            <a class="btn-ink" href="#shelf">本を選ぶ</a>
+            <button id="guide-btn-2" class="btn-line" type="button">はじめに</button>
+          </div>
+        </div>
+        <div class="hero-sample" aria-hidden="true">
+          <p><b>メロスは激怒</b><i>した</i>。必ず、</p>
+          <p>かの邪智暴虐の王を</p>
+          <p>除かなければならぬ</p>
+        </div>
+      </section>
+
+      <section class="intro-section" aria-labelledby="how-title">
+        <p id="how-title" class="eyebrow"><span>進め方</span><span class="eyebrow-en">HOW TO</span></p>
+        <ol class="how-steps">
+          <li>
+            <span class="how-mark">一</span>
+            <p class="how-title">本を選ぶ</p>
+            <p>下の書棚から、写したい一冊を選びます。章のある本は、章ごとに書き進められます。</p>
+          </li>
+          <li>
+            <span class="how-mark">二</span>
+            <p class="how-title">原稿用紙に書き写す</p>
+            <p>縦書きの原稿用紙に、手本が薄く刷られています。日本語入力をオフにして、漢字に添えた読みをローマ字で打つと、右の行から墨の字に変わっていきます。書いたところまでは、このブラウザに残り、続きから書けます。</p>
+          </li>
+          <li>
+            <span class="how-mark">三</span>
+            <p class="how-title">納める</p>
+            <p>一冊を書き上げると、御朱印が押されます。名前と番号（番号はなくても構いません）を添えて、書いた記録を JSON か JSONL のファイルで書き出します。</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="intro-section" aria-labelledby="ire-title">
+        <p id="ire-title" class="eyebrow"><span>二つの入れ方</span><span class="eyebrow-en">INPUT</span></p>
+        <div class="ire-list">
+          <div>
+            <p class="how-title">読みで打つ（はじめはこちら）</p>
+            <p>日本語入力をオフ（英数）にして、漢字に添えた読みをローマ字で打ちます。読みが合った語から、手本の字が升目に入っていきます。変換の手間がないぶん、言葉の流れに乗って速く書き進められます。</p>
+          </div>
+          <div>
+            <p class="how-title">変換して書く</p>
+            <p>日本語入力をオンにして、かなで打って変換します。変換中の字は手本の上に重なり、手本と同じ字になると、薄墨とぴったり重なります。漢字を選ぶところまで、自分の手で書き写します。</p>
+          </div>
+        </div>
+        <p class="lead">入れ方は、上の「設定」でいつでも切り替えられます。次に押すキーと指は、写経の画面の脇に「運筆図」で示します。</p>
+      </section>
+
+      <section id="shelf-section" class="intro-section" aria-labelledby="shelf-title">
+        <p id="shelf-title" class="eyebrow"><span>書棚</span><span class="eyebrow-en">BOOKSHELF</span></p>
+        <ul id="shelf" class="shelf"></ul>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <p class="footer-brand"><span class="footer-ja">青空写経</span><span class="footer-en">AOZORA SHAKYO</span></p>
+        <p class="footer-copy">© 2026 馬場 哲晃 / Tetsuaki Baba（東京都立大学）</p>
+        <p class="footer-note">
+          記録は、このブラウザの中にだけ保存されます。どこにも送りません。書き出したファイルは、ご自分で保存して使ってください。
+        </p>
+        <p class="footer-note">
+          本文は<a href="https://www.aozora.gr.jp/" target="_blank" rel="noopener">青空文庫</a>から。入力と校正は、青空文庫のボランティアの皆さんによるものです（底本と入力・校正の方は、写経の画面に載せています）。漢字の読みは、ルビのある語は青空文庫のルビを、ほかは macOS の日本語の解析で補っています。
+        </p>
+        <p class="footer-note">
+          使っているもの：Google Fonts（SIL Open Font License）、打鍵音
+          <a href="https://opengameart.org/content/keyboard-soundpack-1-typing-and-single-keystrokes" target="_blank" rel="noopener">Keyboard Soundpack #1</a>（unicaegames、CC0）。プログラミング写経
+          <a href="https://shakyo-4lc.pages.dev/" target="_blank" rel="noopener">写経</a> から派生しました。
+        </p>
+      </div>
+    </footer>
+
+    <dialog id="guide" class="guide" aria-labelledby="guide-title">
+      <div class="guide-inner">
+        <p class="eyebrow"><span>はじめに</span><span class="eyebrow-en">HOW TO</span></p>
+        <h2 id="guide-title" class="guide-title">青空写経の進め方</h2>
+        <p class="guide-lead">
+          お経を一字ずつ書き写す「写経」のように、名作を書き写します。<br />
+          急がなくて構いません。一字ずつ、言葉の重さを確かめながら。
+        </p>
+
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-mark">一</span>
+            <div>
+              <p class="guide-step-title">本を選ぶ</p>
+              <p>書棚から一冊を選びます。章のある本は、章ごとに書き進められます。</p>
+            </div>
+          </li>
+          <li>
+            <span class="guide-mark">二</span>
+            <div>
+              <p class="guide-step-title">薄墨の手本を、右の行から読みで打つ</p>
+              <p>日本語入力をオフ（英数）にして、漢字に添えた読みをローマ字で打ちます。読みが合った語から、手本の字が升目に入ります。、。「」は , . [ ] で打ちます。改行と段落の頭の字下げは自動です。日本語入力をオンにして、かなを変換して書く入れ方も選べます（設定）。</p>
+            </div>
+          </li>
+          <li>
+            <span class="guide-mark is-shu">三</span>
+            <div>
+              <p class="guide-step-title">書き上げたら、記録を納める</p>
+              <p>一冊を書き上げると御朱印が押されます。名前と番号を添えて、書いた記録をファイルに書き出します。</p>
+            </div>
+          </li>
+        </ol>
+
+        <div class="guide-sound">
+          <p class="setting-label">はじめに、打鍵音を鳴らすかどうか決めてください</p>
+          <div class="seg seg-2">
+            <button type="button" data-guide-sound="true">
+              <span class="seg-main">鳴らす</span><span class="seg-sub">キーを打つたびに音がする</span>
+            </button>
+            <button type="button" data-guide-sound="false"><span class="seg-main">鳴らさない</span></button>
+          </div>
+          <p class="guide-aside">あとから上の「設定」で変えられます。</p>
+        </div>
+
+        <form method="dialog" class="guide-actions">
+          <button class="btn-ink" type="submit" disabled>はじめる</button>
+        </form>
+      </div>
+    </dialog>
+
+    <script type="module" src="./src/index.js"></script>
+  </body>
+</html>

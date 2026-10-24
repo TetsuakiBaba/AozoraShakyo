@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja" data-theme="washi" data-font="mincho">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>納める ｜ 青空写経</title>
+    <script>
+      try {
+        const s = JSON.parse(localStorage.getItem('aozora:settings') || '{}');
+        if (s.theme) document.documentElement.dataset.theme = s.theme;
+        if (s.font) document.documentElement.dataset.font = s.font;
+      } catch (e) {}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+    />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="./">
+        <span class="brand-ja">青空写経</span>
+        <span class="brand-en">AOZORA SHAKYO</span>
+      </a>
+      <span></span>
+      <div class="top-actions">
+        <a class="text-btn" href="./#shelf">書棚</a>
+      </div>
+    </header>
+
+    <main class="osame-layout">
+      <div id="osame-seal"></div>
+
+      <section>
+        <a class="back" href="./#shelf">書棚へ戻る</a>
+        <p class="eyebrow"><span>納める</span><span class="eyebrow-en">EXPORT</span></p>
+        <h1 id="osame-title"></h1>
+        <p id="osame-lead" class="lead"></p>
+
+        <dl id="osame-stats" class="osame-stats"></dl>
+
+        <form id="osame-form" class="osame-form">
+          <div class="row">
+            <label class="field">
+              <span class="field-label">名前</span>
+              <input id="osame-name" type="text" autocomplete="name" maxlength="40" required />
+            </label>
+            <label class="field">
+              <span class="field-label">番号（任意）</span>
+              <input id="osame-number" type="text" autocomplete="off" maxlength="24" />
+            </label>
+          </div>
+          <p class="field-note">学籍番号などがあれば。名前と番号は書き出すファイルに入れるためだけに使い、このブラウザの中にだけ残します。</p>
+          <div class="osame-buttons">
+            <button class="btn-ink" type="submit" data-format="json">JSON で書き出す</button>
+            <button class="btn-line" type="submit" data-format="jsonl">JSONL で書き出す</button>
+          </div>
+          <p id="osame-msg" class="field-note" role="status"></p>
+        </form>
+
+        <p class="osame-formats">
+          JSON：本・章ごとのまとめ（字数、時間、正確率、打鍵の要約、書いた本文）と、出来事の記録を一つのファイルに。<br />
+          JSONL：一行に一つ。はじめの行がまとめ、続いて章、そのあとに出来事（確定した字・打った一打・消した字数、それぞれの時刻と入れ方）が一行ずつ並びます。
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <p class="footer-brand"><span class="footer-ja">青空写経</span><span class="footer-en">AOZORA SHAKYO</span></p>
+        <p class="footer-note">記録は、このブラウザの中にだけ保存されます。どこにも送りません。</p>
+      </div>
+    </footer>
+
+    <script type="module" src="./src/osame.js"></script>
+  </body>
+</html>

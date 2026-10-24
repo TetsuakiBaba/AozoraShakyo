@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja" data-theme="washi" data-font="mincho">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>青空写経</title>
+    <script>
+      try {
+        const s = JSON.parse(localStorage.getItem('aozora:settings') || '{}');
+        if (s.theme) document.documentElement.dataset.theme = s.theme;
+        if (s.font) document.documentElement.dataset.font = s.font;
+      } catch (e) {}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+    />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="./">
+        <span class="brand-ja">青空写経</span>
+        <span class="brand-en">AOZORA SHAKYO</span>
+      </a>
+      <span></span>
+      <div class="top-actions">
+        <a class="text-btn" href="./#shelf">書棚</a>
+        <button id="settings-btn" class="text-btn" type="button">設定</button>
+      </div>
+    </header>
+
+    <main class="desk-layout">
+      <div class="desk">
+        <aside class="side">
+          <a class="back" href="./#shelf">書棚へ戻る</a>
+          <div class="book-head">
+            <p class="eyebrow"><span id="book-author"></span><span class="eyebrow-en">AOZORA BUNKO</span></p>
+            <h1 id="book-title"></h1>
+            <p id="book-section" class="subtitle"></p>
+          </div>
+
+          <div>
+            <div class="bar"><span id="bar-fill"></span></div>
+          </div>
+          <dl class="stats">
+            <div><dt>字</dt><dd id="st-chars">0 / 0</dd></div>
+            <div><dt>正確率</dt><dd id="st-acc">—</dd></div>
+            <div><dt>時間</dt><dd id="st-time">00:00</dd></div>
+            <div><dt>枚</dt><dd id="st-page">1 / 1枚</dd></div>
+          </dl>
+          <div class="pager">
+            <button id="page-next" type="button" title="次の枚を見る">← 次</button>
+            <button id="page-back" type="button" title="前の枚を見る">前 →</button>
+          </div>
+
+          <div id="done" class="done-box" hidden>
+            <p id="done-text"></p>
+            <a id="done-link" class="btn-ink" href="./"></a>
+          </div>
+          <p id="hint" class="hint" role="status" aria-live="polite"></p>
+
+          <div id="unpitsu-place" class="setting">
+            <p class="setting-label">運筆図（次のキーと指）</p>
+            <div class="seg seg-2">
+              <button type="button" data-setting="unpitsu" data-value="side"><span class="seg-main">右の欄</span></button>
+              <button type="button" data-setting="unpitsu" data-value="below"><span class="seg-main">原稿用紙の下</span></button>
+              <button type="button" data-setting="unpitsu" data-value="cursor"><span class="seg-main">カーソルの上</span></button>
+              <button type="button" data-setting="unpitsu" data-value="off"><span class="seg-main">出さない</span></button>
+            </div>
+          </div>
+          <div id="unpitsu"></div>
+
+          <div id="chapters" class="setting" hidden>
+            <p class="setting-label">章</p>
+            <div id="chapter-list" class="chapter-list"></div>
+          </div>
+
+          <div class="side-tools">
+            <button id="reset" class="text-btn" type="button">書き直す</button>
+          </div>
+          <p id="credit" class="settings-note" style="line-height: 1.9; letter-spacing: 0.05em"></p>
+        </aside>
+
+        <div id="paper" class="paper-wrap"></div>
+      </div>
+    </main>
+
+    <section id="event-log" class="event-log" hidden>
+      <div class="pager" style="justify-content: flex-start">
+        <p class="eyebrow"><span>入力のイベント</span><span class="eyebrow-en">EVENT LOG</span></p>
+        <button id="log-copy" type="button">記録を写す</button>
+      </div>
+      <pre id="log-text"></pre>
+    </section>
+
+    <script type="module" src="./src/shakyo.js"></script>
+  </body>
+</html>
