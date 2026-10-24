@@ -173,3 +173,16 @@ export function nextKey(stream, state, style = 'hepburn') {
   const pick = preferred(stream, pos, state.pending, style);
   return pick ? pick.r[state.pending.length] : null;
 }
+
+// stream の state から to までを、案内する綴りで打つと何になるか（読み札に、残りのローマ字として出す）。
+// state.pending があれば、その続きから
+export function spell(stream, state, to, style = 'hepburn') {
+  const st = { ...state };
+  let out = '';
+  for (let i = 0; i < 400 && st.pos < to; i++) {
+    const k = nextKey(stream, st, style);
+    if (!k || !feed(stream, st, k)) break;
+    out += k;
+  }
+  return out;
+}

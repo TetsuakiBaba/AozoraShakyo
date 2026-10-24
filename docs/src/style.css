@@ -700,18 +700,56 @@ h1 {
   display: none;
 }
 
-/* 読みで打つ：まだ字にならないローマ字を、次の升目の下に小さく */
-.cell .romaji {
+/* 読み札：句読点までの読みと、打ったローマ字・残りのローマ字。いま書く升目の右脇に横書きで */
+.yomi-strip {
   position: absolute;
-  left: 50%;
-  bottom: -0.2em;
-  transform: translateX(-50%);
-  writing-mode: horizontal-tb;
-  font-family: var(--font-ui);
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 0.04em;
+  z-index: 2;
+  max-width: 520px;
+  padding: 7px 12px 8px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper-sheet) 94%, transparent);
+  box-shadow: 0 10px 24px -14px rgba(60, 45, 20, 0.4);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.yomi-strip p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.yomi-strip-kana {
+  font-family: var(--genko-font);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+.yomi-strip-kana b {
   color: var(--ai);
+  font-weight: 700;
+}
+
+.yomi-strip-romaji {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+.yomi-strip-romaji .typed {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.yomi-strip-romaji .caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.05em;
+  margin: 0 1px;
+  vertical-align: -0.15em;
+  background: var(--ai);
+  animation: blink 1.1s steps(1) infinite;
 }
 
 .ruby.is-written,

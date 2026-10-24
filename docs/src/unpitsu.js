@@ -232,7 +232,8 @@ export function mountUnpitsu(parent) {
       // 右脇の筆先（変換中の札）にかからないよう、升目二つ分ほど離す
       const right = x + c * 2.6 + 8;
       left = right + w <= area.width ? right : Math.max(0, x - c * 0.6 - w);
-      top = Math.max(0, Math.min(area.height - h, y));
+      // 升目の横に読み札が出ていれば、その下へ
+      top = Math.max(0, Math.min(area.height - h, y + (caret.below ?? 0)));
     }
     // 最初に置くときは滑らせず、その場に出す
     if (!box.classList.contains('is-placed')) requestAnimationFrame(() => box.classList.add('is-placed'));

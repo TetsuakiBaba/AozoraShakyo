@@ -1,5 +1,5 @@
 import { same } from './match.js';
-import { buildStream, feed, hira, nextKey } from './yomi.js';
+import { buildStream, feed, hira, nextKey, spell } from './yomi.js';
 
 // 縦書きの原稿用紙（写経用紙）
 //
@@ -18,7 +18,8 @@ import { buildStream, feed, hira, nextKey } from './yomi.js';
 //   'fuda'    変換して書く。変換中の字を右脇の札に出す
 //   'yomi'    読みで打つ。日本語入力をオフにしてローマ字で読みを打つと、読みが合った語から
 //             手本の字が升目に入る（yomi.js）。漢字にはすべて読みを添える。
-//             日本語入力がオンのままなら、'kasane' と同じように書ける（かなのまま確定しても通る）
+//             日本語入力がオンのままなら、'kasane' と同じように書ける（かなのまま確定しても通る）。
+//             句読点までのひとまとまりを「読み札」に出し、打ったローマ字と残りを並べて、どこまで打ったかを見せる
 //
 // 升目に重ねるときは、
 // 手本の薄墨は下にうっすら残し、変換した字が手本と同じなら、薄墨とぴったり重なる。
@@ -41,7 +42,8 @@ import { buildStream, feed, hira, nextKey } from './yomi.js';
 //   reserveBottom()  原稿用紙の下に空けておく高さ（運筆図を下に置くとき）
 //   romaji()       運筆図で案内するローマ字の綴り：'hepburn'（ヘボン式）/ 'kunrei'（訓令式）
 //   onChange(state)  state.stroke は次の一手（運筆図で示す）：{ type: 'char' | 'backspace' | 'space' | 'enter', ch?, note? }
-//                    state.caret はいま書く升目の位置（原稿用紙の左上から）：{ x, y, c }。見えていなければ null
+//                    state.caret はいま書く升目の位置（原稿用紙の左上から）：{ x, y, c, below }。見えていなければ null。
+//                    below は、升目の横に出している読み札の高さ（運筆図を横に置くとき、その下へずらす）
 //   onRecord(event)  書いた・消した・打った記録：{ type: 'commit' | 'key' | 'delete', at, ... }
 //   onLog(entry) / onPasteBlocked() / onYomiIme() / onKeystroke(event)
 
@@ -55,6 +57,8 @@ const MODIFIERS = new Set(['Shift', 'Alt', 'Meta', 'Control', 'CapsLock']);
 const SPACE = /^[ 　]$/;
 const CONTEXT = 40; // 筆先に残す左の文脈の字数
 const HALF_WIDTH = /[\x00-\x7f\uff61-\uff9f]/;
+const CHUNK_END = new Set('、。，．！？」』）');  // 読み札は、この字までをひとまとまりにする
+const CHUNK_KANA = 16; // 句読点が来なければ、このくらいのかなで語の切れ目で区切る
 const SVG = 'http://www.w3.org/2000/svg';
 
 function escapeHtml(text) {
@@ -112,6 +116,7 @@ export function createGenko(opts) {
   const cellLayer = el('div', 'genko-cells');
   const markLayer = el('div', 'genko-marks');
   const fude = el('div', 'fude'); // 札。文脈の字は札の外に出して隠す
+  const strip = el('div', 'yomi-strip'); // 読み札（読みで打つとき）
   const input = el('textarea', 'fude-input');
   for (const [k, v] of Object.entries({
     spellcheck: 'false',
@@ -125,7 +130,7 @@ export function createGenko(opts) {
     input.setAttribute(k, v);
   }
   fude.append(input);
-  sheet.append(paper, grid, markLayer, cellLayer, fude);
+  sheet.append(paper, grid, markLayer, cellLayer, fude, strip);
   root.append(sheet);
   opts.parent.append(root);
 
@@ -135,6 +140,7 @@ export function createGenko(opts) {
   let misses = opts.misses ?? 0;
   let context = ''; // 筆先に残している左の文脈
   let kana = { pos: 0, pending: '' }; // 読みで打つ：読みのどこまで打ったか、まだ字にならないローマ字
+  let chunk = null; // 読み札のひとまとまり：{ from, to }（読みの位置）と、そこで打ったキー keys
   let composing = null; // 変換中：{ start, baseLength }（筆先の中の位置）
   let fresh = null; // 書いたばかりの字の範囲：{ from, to }
   let peek = null; // 書いている枚とは別の枚を見ているとき、その枚
@@ -367,7 +373,6 @@ export function createGenko(opts) {
         if (overlay && composing && !sel && g === cursor + caret) cls += ' pre-caret';
         // 読みで打つ：打ちかけの語の升目を淡く示し、まだ字にならないローマ字を添える
         if (yomiMode && g >= cursor && stream.starts[g] < kana.pos) cls += ' aim';
-        if (yomiMode && g === cursor && kana.pending) html = `${escapeHtml(text)}<span class="romaji">${escapeHtml(kana.pending)}</span>`;
       }
       if (/[A-Za-z0-9 ]/.test(chars[g].ch)) cls += ' upright';
       if (cell.className !== cls) cell.className = cls;
@@ -398,6 +403,7 @@ export function createGenko(opts) {
     }
 
     placeFude(cursor, pending.length, preedit, page === writing && cursor < total);
+    placeStrip(yomiMode && page === writing && cursor < total ? cursor : null);
     root.classList.toggle('is-overlay', overlay);
     root.classList.toggle('is-yomi', mode === 'yomi');
     root.classList.toggle('is-composing', !!composing);
@@ -405,7 +411,7 @@ export function createGenko(opts) {
     const box = cursor < total && page === writing ? cellBox(cursor) : null;
     opts.onChange?.({
       stroke: nextStroke(mode, cursor, comp),
-      caret: box && { x: box.x, y: box.y, c: geo.c },
+      caret: box && { x: box.x, y: box.y, c: geo.c, below: strip.hidden ? 0 : strip.offsetHeight + 8 },
       typed,
       total,
       correct: [...typed].filter((ch, g) => same(ch, chars[g].ch)).length,
@@ -471,6 +477,33 @@ export function createGenko(opts) {
     s.top = `${-context.length * c}px`;
   }
 
+  // 読み札：句読点までの読みと、打ったローマ字・残りのローマ字を、いま書く升目の右脇（書き終えた側）に横書きで出す。
+  // 右に余地がなければ左に出す
+  function placeStrip(cursor) {
+    if (cursor == null || !chunk) {
+      strip.hidden = true;
+      return;
+    }
+    const s = stream.stream;
+    const done = s.slice(chunk.from, kana.pos);
+    const rest = s.slice(kana.pos, chunk.to);
+    const ahead = spell(s, kana, chunk.to, opts.romaji?.());
+    const html =
+      `<p class="yomi-strip-kana"><b>${escapeHtml(done)}</b>${escapeHtml(rest)}</p>` +
+      `<p class="yomi-strip-romaji"><span class="typed">${escapeHtml(chunk.keys)}</span><span class="caret"></span>${escapeHtml(ahead)}</p>`;
+    if (strip.dataset.k !== html) {
+      strip.dataset.k = html;
+      strip.innerHTML = html;
+    }
+    strip.hidden = false;
+    const { x, y } = cellBox(cursor);
+    const { c, gap, width, height } = geo;
+    const w = strip.offsetWidth;
+    const right = x + c + gap + 4;
+    strip.style.left = `${right + w <= width - 4 ? right : Math.max(4, x - gap - w - 4)}px`;
+    strip.style.top = `${Math.min(y, height - strip.offsetHeight - 4)}px`;
+  }
+
   // ───── 入力 ─────
 
   // 筆先に、いまの段落で書き終えた字を左の文脈として入れ直す。
@@ -494,6 +527,22 @@ export function createGenko(opts) {
   // 読みで打つ：原稿の字から、読みのどこから打つかを決め直す
   function syncKana() {
     kana = { pos: typed.length < total ? stream.starts[typed.length] : stream.stream.length, pending: '' };
+    startChunk();
+  }
+
+  // 読み札のひとまとまりを、いまの読みの位置から決め直す（句読点まで。長ければ語の切れ目で区切る）
+  function startChunk() {
+    if (typed.length >= total) {
+      chunk = null;
+      return;
+    }
+    let g = typed.length;
+    while (g < total) {
+      const end = stream.ends[g];
+      while (g < total && stream.ends[g] === end) g++;
+      if (CHUNK_END.has(chars[g - 1].ch) || end - kana.pos >= CHUNK_KANA) break;
+    }
+    chunk = { from: kana.pos, to: stream.ends[g - 1], keys: '' };
   }
 
   // カーソルが外字に来たら、打たずに升目へ入れる。入れたら true
@@ -529,7 +578,10 @@ export function createGenko(opts) {
     const ok = feed(stream.stream, kana, e.key);
     record('key', { key: e.key, ok, at });
     if (ok) {
+      if (chunk) chunk.keys += e.key.toLowerCase();
       if (fillByKana()) setContext();
+      // ひとまとまりを打ち終えたら、次のまとまりへ
+      if (chunk && kana.pos >= chunk.to && !kana.pending) startChunk();
     } else {
       misses++;
       cellEls.get(typed.length)?.animate?.(
@@ -610,8 +662,15 @@ export function createGenko(opts) {
     } else if (yomiMode && idle && e.key === 'Backspace' && !e.metaKey && !e.ctrlKey) {
       // 読みで打つ：まだ字にならないローマ字、打ちかけの読み、一つ前の語、の順に戻る
       e.preventDefault();
-      if (kana.pending) kana.pending = kana.pending.slice(0, -1);
-      else if (typed.length < total && kana.pos > stream.starts[typed.length]) kana.pos--;
+      if (kana.pending) {
+        kana.pending = kana.pending.slice(0, -1);
+        if (chunk) chunk.keys = chunk.keys.slice(0, -1);
+      } else if (typed.length < total && kana.pos > stream.starts[typed.length]) {
+        kana.pos--;
+        // 打ったキーは、戻ったところまでを案内の綴りで数え直す
+        if (chunk && kana.pos < chunk.from) startChunk();
+        else if (chunk) chunk.keys = spell(stream.stream, { pos: chunk.from, pending: '' }, kana.pos, opts.romaji?.());
+      }
       else if (typed.length) {
         const before = typed.length;
         while (typed.length && chars[typed.length - 1].auto) typed = typed.slice(0, -1);
