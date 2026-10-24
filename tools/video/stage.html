@@ -1,0 +1,235 @@
+<!doctype html>
+<!--
+  紹介動画の画面（1920×1080）。上にロゴ、真ん中に本物のサイト（iframe）、下に言葉を置く。
+  tools/video/record.mjs が、このページを開いてサイトを操作しながら撮る。
+  サイトと同じ場所から配る必要がある（リポジトリの一番上を配り、/tools/video/stage.html を開く）
+-->
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>青空写経 紹介動画</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap"
+    />
+    <style>
+      :root {
+        --paper: #f1ece1;
+        --sheet: #f8f5ed;
+        --ink: #1d1b18;
+        --ink-soft: #57524a;
+        --ink-faint: #8d8679;
+        --shu: #c23b22;
+        --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: 'Zen Kaku Gothic New', sans-serif;
+        position: relative;
+      }
+      body::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.35;
+        mix-blend-mode: multiply;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        z-index: 5;
+      }
+      .brand {
+        position: absolute;
+        top: 46px;
+        left: 72px;
+        display: flex;
+        align-items: baseline;
+        gap: 18px;
+      }
+      .brand-ja {
+        font-family: 'Yuji Syuku', serif;
+        font-size: 30px;
+        letter-spacing: 0.3em;
+      }
+      .brand-en {
+        font-size: 13px;
+        letter-spacing: 0.45em;
+        color: var(--ink-faint);
+      }
+      /* サイトの画面：1440×900 で動かし、縮めて載せる */
+      .screen {
+        position: absolute;
+        left: 50%;
+        top: 112px;
+        width: calc(1440px * 0.8);
+        height: calc(900px * 0.8);
+        transform: translateX(-50%);
+        overflow: hidden;
+        border: 1px solid rgba(29, 27, 24, 0.14);
+        box-shadow: 0 30px 60px -36px rgba(60, 45, 20, 0.5);
+        background: var(--paper);
+      }
+      /* 寄り・引き：サイトの画面の一部へ、ゆっくり寄る */
+      .view {
+        width: 100%;
+        height: 100%;
+        transform-origin: 0 0;
+        transition: transform 1.4s cubic-bezier(0.45, 0, 0.2, 1);
+      }
+      .screen iframe {
+        width: 1440px;
+        height: 900px;
+        border: 0;
+        transform: scale(0.8);
+        transform-origin: 0 0;
+      }
+      .caption {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 870px;
+        text-align: center;
+        transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+      }
+      .caption.is-hidden {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      .caption-eyebrow {
+        margin: 0;
+        font-family: 'Shippori Mincho', serif;
+        font-size: 22px;
+        letter-spacing: 0.5em;
+        color: var(--shu);
+      }
+      .caption-text {
+        margin: 14px 0 0;
+        font-family: 'Shippori Mincho', serif;
+        font-size: 44px;
+        letter-spacing: 0.2em;
+      }
+      .caption-note {
+        margin: 12px 0 0;
+        font-size: 20px;
+        letter-spacing: 0.18em;
+        color: var(--ink-soft);
+      }
+      /* 題字の札（はじめと終わり） */
+      .title {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 0;
+        background: var(--paper);
+        transition: opacity 0.9s var(--ease);
+      }
+      .title.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .title-eyebrow {
+        margin: 0;
+        font-family: 'Shippori Mincho', serif;
+        font-size: 30px;
+        letter-spacing: 0.5em;
+        color: var(--ink-soft);
+      }
+      .title h1 {
+        margin: 26px 0 0;
+        font-family: 'Yuji Syuku', serif;
+        font-weight: 400;
+        font-size: 200px;
+        line-height: 1.1;
+        letter-spacing: 0.12em;
+      }
+      .title-sub {
+        margin: 34px 0 0;
+        font-family: 'Shippori Mincho', serif;
+        font-size: 36px;
+        letter-spacing: 0.2em;
+        color: var(--ink-soft);
+      }
+      .title-url {
+        margin: 44px 0 0;
+        font-size: 26px;
+        letter-spacing: 0.12em;
+        color: var(--ink-faint);
+      }
+      .title-en {
+        margin: 40px 0 0;
+        font-size: 18px;
+        letter-spacing: 0.6em;
+        color: var(--ink-faint);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brand"><span class="brand-ja">青空写経</span><span class="brand-en">AOZORA SHAKYO</span></div>
+
+    <div class="screen"><div id="view" class="view"><iframe id="site" title="青空写経"></iframe></div></div>
+
+    <div id="caption" class="caption is-hidden">
+      <p id="caption-eyebrow" class="caption-eyebrow"></p>
+      <p id="caption-text" class="caption-text"></p>
+      <p id="caption-note" class="caption-note"></p>
+    </div>
+
+    <div id="title" class="title">
+      <p class="title-eyebrow">青空文庫を、写す</p>
+      <h1>青空写経</h1>
+      <p id="title-sub" class="title-sub">名作を、縦書きの原稿用紙に一字ずつ書き写す</p>
+      <p id="title-url" class="title-url" hidden>tetsuakibaba.github.io/AozoraShakyo</p>
+      <p class="title-en">AOZORA SHAKYO</p>
+    </div>
+
+    <script>
+      // record.mjs から呼ぶ
+      const $ = (id) => document.getElementById(id);
+      window.stage = {
+        site: () => $('site'),
+        open(path) {
+          $('site').src = path;
+        },
+        caption(eyebrow, text, note = '') {
+          const box = $('caption');
+          box.classList.add('is-hidden');
+          setTimeout(() => {
+            $('caption-eyebrow').textContent = eyebrow;
+            $('caption-text').textContent = text;
+            $('caption-note').textContent = note;
+            if (text) box.classList.remove('is-hidden');
+          }, text && $('caption-text').textContent ? 500 : 0);
+        },
+        // サイトの (x, y)（サイトの CSS px）を画面の真ん中にして、s 倍に寄る。引数なしで引く
+        zoom(x, y, s = 1) {
+          const W = 1440 * 0.8;
+          const H = 900 * 0.8;
+          if (x == null || s === 1) {
+            $('view').style.transform = '';
+            return;
+          }
+          const tx = Math.min(0, Math.max(W - W * s, W / 2 - x * 0.8 * s));
+          const ty = Math.min(0, Math.max(H - H * s, H / 2 - y * 0.8 * s));
+          $('view').style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+        },
+        title(show, { sub, url = false } = {}) {
+          if (sub) $('title-sub').textContent = sub;
+          $('title-url').hidden = !url;
+          $('title').classList.toggle('is-hidden', !show);
+        },
+      };
+    </script>
+  </body>
+</html>
