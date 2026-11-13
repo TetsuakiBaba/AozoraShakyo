@@ -2024,64 +2024,6 @@ h1,
   font-size: 11px;
 }
 
-/* iroha のコード（src/iroha.js） */
-.osame-iroha {
-  display: grid;
-  gap: 16px;
-  max-width: 520px;
-  margin-top: 44px;
-  padding-top: 28px;
-  border-top: 1px solid var(--line);
-}
-
-.osame-iroha .eyebrow {
-  margin: 0;
-}
-
-.osame-iroha-lead {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.9;
-  letter-spacing: 0.06em;
-  color: var(--ink-soft);
-}
-
-.osame-iroha-lead a {
-  color: inherit;
-}
-
-.osame-iroha .field input,
-.osame-iroha-code {
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  letter-spacing: 0.14em;
-}
-
-/* ID は大文字で見せる（小文字で打っても同じ ID として扱う） */
-.osame-iroha .field input {
-  text-transform: uppercase;
-}
-
-.osame-iroha .field input::placeholder {
-  text-transform: none;
-}
-
-.osame-iroha-result {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px 16px;
-  align-items: center;
-}
-
-.osame-iroha-result .field-label {
-  grid-column: 1 / -1;
-}
-
-.osame-iroha-code {
-  font-size: 26px;
-  color: var(--shu);
-  user-select: all;
-}
-
 @media (max-width: 900px) {
   .hero,
   .osame-layout {

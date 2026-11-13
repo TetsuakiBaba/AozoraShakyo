@@ -10,7 +10,6 @@
    - 読みで打つ（標準）：日本語入力をオフにして、漢字に添えた読みをローマ字で打つ。
    - 変換して書く：かなで打って変換すると、変換中の字が手本の上に重なる。
 4. **納める**：一冊を書き上げたら、名前と番号（任意）を添えて、書いた記録を JSON か JSONL で書き出す。
-   日本語入力 [iroha](https://tetsuakibaba.github.io/iroha/) を使っている人は、iroha の ID を入れると、その一冊のコードを受け取れる（下の「iroha のコード」）。
 
 計画と設計の詳細は [PLAN.md](PLAN.md)。
 
@@ -35,20 +34,10 @@ python3 tools/aozora.py   # → docs/src/texts.js
 
 漢字の読みが違っていたら、`tools/aozora.py` の `YOMI_FIXES` に（前後の字, 直す語, 読み）を足して、取り込み直します。
 
-本を足したら、`docs/src/iroha.js` の `WORK_NUMBERS` にその本の番号（次の 2 文字の番号）を足します。番号のない本には iroha のコードを出しません。
-
-## iroha のコード
-
-一冊を書き上げた人に、日本語入力 iroha のスキル（機能）を解除するコードを「納める」の画面で出します。iroha の「設定」→「スキル」に出ている ID を入れると、「その ID と作品の番号」からコードを作ります。iroha はコード一つでスキルを一つ解除し、別々の作品のコードが七つ揃うとすべてのスキルを解除します。
-
-- 計算はブラウザの中だけで行い、どこにも送りません。iroha の側も同じ計算で照合します（`docs/src/iroha.js` と、iroha の `macos/Sources/IrohaCore/Skills/SkillCode.swift`）。**計算を変えるときは両方を合わせます。**
-- 作品の番号（`WORK_NUMBERS`）は、一度公開したら変えません。ほかの本に使い回しもしません（本を外しても欠番にします）。iroha は別々の番号のコードの数を数えるためです。
-- 確かめるときは、iroha のリポジトリで `iroha-cli skill code <ID> <作品の番号>` を実行すると、同じコードが出ます。
-
 | 場所 | 中身 |
 |---|---|
 | `docs/` | 公開するサイト（`index.html` 導入と書棚、`shakyo.html` 写経、`osame.html` 納める） |
-| `docs/src/` | JS と CSS。`texts.js` は取り込んだ本文（手で書き換えない）。`iroha.js` は iroha のコード |
+| `docs/src/` | JS と CSS。`texts.js` は取り込んだ本文（手で書き換えない） |
 | `tools/` | 青空文庫の本文と読みの取り込み |
 | `serve.py` | 手元で確かめるためのサーバ |
 

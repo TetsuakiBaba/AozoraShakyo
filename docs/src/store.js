@@ -7,7 +7,6 @@ import { BOOKS } from './texts.js';
 //   aozora:progress:<本>:<章>    章の書きかけ { total, typed, correct, misses, elapsed, keys, startedAt, finishedAt }
 //   aozora:events:<本>:<章>      章の打鍵・確定・消去の記録 [[時刻, 種類, 位置, 中身, 合否, 入れ方], ...]
 //   aozora:done:<本>             一冊を書き上げた記録 { date }
-//   aozora:iroha                 iroha のコードを作るための ID { id }
 
 const PREFIX = 'aozora:';
 
@@ -124,14 +123,4 @@ export function loadProfile() {
 
 export function saveProfile(profile) {
   save('profile', profile);
-}
-
-// ───── iroha の ID（src/iroha.js） ─────
-
-export function loadIrohaId() {
-  return load('iroha', { id: '' }).id;
-}
-
-export function saveIrohaId(id) {
-  save('iroha', { id });
 }

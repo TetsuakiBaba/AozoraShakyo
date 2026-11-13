@@ -82,25 +82,6 @@
           JSON：本・章ごとのまとめ（字数、時間、正確率、打鍵の要約、書いた本文）と、出来事の記録を一つのファイルに。<br />
           JSONL：一行に一つ。はじめの行がまとめ、続いて章、そのあとに出来事（確定した字・打った一打・消した字数、それぞれの時刻と入れ方）が一行ずつ並びます。
         </p>
-
-        <!-- iroha のコード（src/iroha.js）。書き上げた本で、作品の番号がある本にだけ出す -->
-        <div id="osame-iroha" class="osame-iroha" hidden>
-          <p class="eyebrow"><span>iroha のコード</span><span class="eyebrow-en">IROHA CODE</span></p>
-          <p class="osame-iroha-lead">
-            日本語入力 <a href="https://tetsuakibaba.github.io/iroha/">iroha</a> を使っている人は、この一冊のコードを受け取れます。
-            iroha の「設定」→「スキル」に出ている ID を入れてください。コード一つで、iroha のスキルを一つ解除できます。
-          </p>
-          <label class="field">
-            <span class="field-label">iroha の ID</span>
-            <input id="iroha-id" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="24" placeholder="例：7QF2-MX8K" />
-          </label>
-          <div id="iroha-result" class="osame-iroha-result" hidden>
-            <span class="field-label">この一冊のコード</span>
-            <output id="iroha-code" class="osame-iroha-code" for="iroha-id"></output>
-            <button id="iroha-copy" class="btn-line" type="button">コピー</button>
-          </div>
-          <p id="iroha-msg" class="field-note" role="status"></p>
-        </div>
       </section>
     </main>
 
